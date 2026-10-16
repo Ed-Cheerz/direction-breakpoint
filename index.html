@@ -465,7 +465,7 @@ function renderTiers(){
   const best = store.get("best", 0), won = tierFor(best);
   $("#tiers").innerHTML = CONFIG.tiers.map(t =>
     `<li class="${won === t ? "won" : ""}"><span class="pts">${t.min}${t.min >= 500 ? "" : "+"}</span><span class="lbl">${t.title}<span>${t.detail}</span></span></li>`
-  ).join("") + `<li class="${store.get("plays", 0) ? "won" : ""}"><span class="pts">Tous</span><span class="lbl">${CONFIG.discount.title}<span>En bonus avec chaque lot, ou en lot de consolation</span></span></li>`;
+  ).join("");
 }
 /* unique prize codes: PREFIX-XXXXX-CC, CC = checksum over prefix+body+salt */
 const ALPH = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
