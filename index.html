@@ -373,9 +373,10 @@ const CONFIG = {
     { min: 500, title: "Gros lot",                  detail: "À récupérer auprès de Cptn", prefix: "GROS" },
     { min: 400, title: "Lot moyen",                 detail: "À récupérer auprès de Cptn", prefix: "MOYEN" },
     { min: 300, title: "Petit lot",                 detail: "À récupérer auprès de Cptn", prefix: "PETIT" },
-    { min: 200, title: "Ticket tirage au sort final", detail: "Une participation au tirage au sort final", prefix: "TIRAGE", draw: true },
-    { min: 150, title: "Réduction billet Breakpoint", detail: "Un code promo sur ton billet Breakpoint", code: "SUPERTEAM-ZSR-BP26" }
+    { min: 200, title: "Ticket tirage au sort final", detail: "Une participation au tirage au sort final", prefix: "TIRAGE", draw: true }
   ],
+  // given to every player after a game: bonus on top of a tier, or consolation below 200
+  discount: { title: "Réduction billet Breakpoint", detail: "Un code promo sur ton billet Breakpoint", code: "SUPERTEAM-ZSR-BP26" },
   codeSalt: "bpfr-2026-change-moi",   // change this before launch; codes are checked against it
   drawEndpoint: "",                   // URL that receives draw entries as JSON POST {pseudo, code, score}; empty = kept on the player's device only
   shareBonus: { title: "Booster Pokémon offert", detail: "Un booster Pokémon gratuit à récupérer auprès de Cptn", prefix: "BOOSTER" }
@@ -464,7 +465,7 @@ function renderTiers(){
   const best = store.get("best", 0), won = tierFor(best);
   $("#tiers").innerHTML = CONFIG.tiers.map(t =>
     `<li class="${won === t ? "won" : ""}"><span class="pts">${t.min}${t.min >= 500 ? "" : "+"}</span><span class="lbl">${t.title}<span>${t.detail}</span></span></li>`
-  ).join("");
+  ).join("") + `<li class="${store.get("plays", 0) ? "won" : ""}"><span class="pts">Tous</span><span class="lbl">${CONFIG.discount.title}<span>En bonus avec chaque lot, ou en lot de consolation</span></span></li>`;
 }
 /* unique prize codes: PREFIX-XXXXX-CC, CC = checksum over prefix+body+salt */
 const ALPH = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -529,7 +530,10 @@ document.addEventListener("click", e => {
 });
 function renderReward(){
   const best = store.get("best", 0), t = tierFor(best);
-  $("#reward").innerHTML = t ? ticketHTML(`Meilleur score : ${best} pts`, t) : "";
+  if (!store.get("plays", 0)){ $("#reward").innerHTML = ""; renderTiers(); return; }
+  $("#reward").innerHTML = t
+    ? ticketHTML(`Meilleur score : ${best} pts`, t) + ticketHTML("Bonus pour tous les gagnants", CONFIG.discount)
+    : ticketHTML(`Meilleur score : ${best} pts · lot de consolation`, CONFIG.discount);
   renderTiers();
 }
 
@@ -596,7 +600,7 @@ function end(){
   if (G.score > prev) store.set("best", G.score);
   const t = tierFor(G.score);
   fb.className = "feedback " + (t ? "p" : "m");
-  fb.innerHTML = t ? `${G.score} pts · ${t.title}` : `${G.score} pts<small>il faut ${CONFIG.tiers.at(-1).min} pour un lot</small>`;
+  fb.innerHTML = t ? `${G.score} pts · ${t.title}` : `${G.score} pts<small>réduction débloquée, ${CONFIG.tiers.at(-1).min} pts pour un lot</small>`;
   syncHud(); renderReward();
 }
 $("#start").addEventListener("click", start);
