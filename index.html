@@ -124,6 +124,12 @@ a{color:inherit}
 .rules{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
 
 /* reward ticket */
+.reward-head{display:flex;align-items:center;gap:14px;margin-top:28px;scroll-margin-top:16px}
+.reward-head .sol{width:40px;height:32px}
+.reward-head h3{margin:0;font-family:var(--f-display);font-weight:900;font-size:clamp(30px,4.4vw,42px);line-height:.95;text-transform:uppercase;background:var(--sol-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.reward-head p{margin:4px 0 0;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.reward-head.flash{animation:rh-in .6s ease-out}
+@keyframes rh-in{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
 .ticket{display:grid;grid-template-columns:1fr auto;background:var(--flap);color:#1d1a33;border-radius:8px;overflow:hidden;margin-top:18px}
 .ticket .main{padding:18px 20px;min-width:0}
 .ticket .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6d6650}
@@ -531,9 +537,10 @@ document.addEventListener("click", e => {
 function renderReward(){
   const best = store.get("best", 0), t = tierFor(best);
   if (!store.get("plays", 0)){ $("#reward").innerHTML = ""; renderTiers(); return; }
-  $("#reward").innerHTML = t
-    ? ticketHTML(`Meilleur score : ${best} pts`, t) + ticketHTML("Bonus pour tous les gagnants", CONFIG.discount)
-    : ticketHTML(`Meilleur score : ${best} pts · lot de consolation`, CONFIG.discount);
+  const head = `<div class="reward-head"><svg class="sol" aria-hidden="true"><use href="#solmark"/></svg><div><h3>Récupère tes gains</h3><p>${t ? "2 lots débloqués" : "1 lot débloqué"} · meilleur score ${best} pts</p></div></div>`;
+  $("#reward").innerHTML = head + (t
+    ? ticketHTML(`Ton lot`, t) + ticketHTML("Bonus pour tous les gagnants", CONFIG.discount)
+    : ticketHTML(`Lot de consolation`, CONFIG.discount));
   renderTiers();
 }
 
@@ -602,6 +609,11 @@ function end(){
   fb.className = "feedback " + (t ? "p" : "m");
   fb.innerHTML = t ? `${G.score} pts · ${t.title}` : `${G.score} pts<small>réduction débloquée, ${CONFIG.tiers.at(-1).min} pts pour un lot</small>`;
   syncHud(); renderReward();
+  const rh = $("#reward .reward-head");
+  if (rh){
+    rh.classList.add("flash");
+    rh.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
 }
 $("#start").addEventListener("click", start);
 track.addEventListener("pointerdown", e => { e.preventDefault(); G.running ? hit() : start(); });
